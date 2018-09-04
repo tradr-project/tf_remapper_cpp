@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>tf_remapper_cpp</name>
+  <version>1.0.0</version>
+  <description>Remap TFs.</description>
+
+  <maintainer email="peckama2@fel.cvut.cz">Martin Pecka</maintainer>
+
+  <license>BSD</license>
+
+  <author email="peckama2@fel.cvut.cz">Martin Pecka</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>xmlrpcpp</depend>
+  <depend>roscpp</depend>
+  <depend>tf2_msgs</depend>
+
+</package>
