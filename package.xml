@@ -15,4 +15,7 @@
   <depend>roscpp</depend>
   <depend>tf2_msgs</depend>
 
+  <test_depend>rostest</test_depend>
+  <test_depend>tf</test_depend>
+
 </package>

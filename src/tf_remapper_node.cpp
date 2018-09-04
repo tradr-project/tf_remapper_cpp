@@ -31,6 +31,8 @@ tf_remapper_cpp::TfRemapperNode::TfRemapperNode() : privateNodeHandle("~")
 
     ROS_INFO_STREAM("Old TF topic: " << this->oldTfTopic);
     ROS_INFO_STREAM("Remapped TF topic: " << this->remappedTfTopic);
+    if (this->staticTf)
+        ROS_INFO("Running in static TF mode (caching all TFs, latched publisher)");
 
     this->oldTfSubscriber = this->publicNodeHandle.subscribe(
             this->oldTfTopic, 100, &TfRemapperNode::oldTfCallback, this);
@@ -45,7 +47,33 @@ void tf_remapper_cpp::TfRemapperNode::oldTfCallback(const ros::MessageEvent<tf2_
         return;
 
     tf2_msgs::TFMessage message = this->tfRemapper.doRemapping(*event.getConstMessage());
-    this->remappedTfPublisher.publish(message);
+
+    // Since static TF can come from many latched publishers, and we are only a single publisher, we must gather all
+    // the static TF messages in a cache and every time publish all of them.
+    if (this->staticTf) {
+        this->addToStaticTfCache(message);
+        this->remappedTfPublisher.publish(this->staticTfCache);
+    } else {
+        this->remappedTfPublisher.publish(message);
+    }
+}
+
+void tf_remapper_cpp::TfRemapperNode::addToStaticTfCache(const tf2_msgs::TFMessage& message) {
+    // We do an inefficient O(N^2) search here, but there should not be that many static TFs that it would matter
+    for (std::vector<geometry_msgs::TransformStamped>::const_iterator it = message.transforms.begin();
+            it != message.transforms.end(); ++it) {
+        bool found = false;
+        for (std::vector<geometry_msgs::TransformStamped>::iterator cacheIt = this->staticTfCache.transforms.begin();
+                cacheIt != this->staticTfCache.transforms.end(); ++cacheIt) {
+            if (it->child_frame_id == cacheIt->child_frame_id) {
+                found = true;
+                *cacheIt = *it;
+                break;
+            }
+        }
+        if (!found)
+            this->staticTfCache.transforms.push_back(*it);
+    }
 }
 
 int main(int argc, char * argv[])

@@ -20,12 +20,14 @@ protected:
     ros::Publisher remappedTfPublisher;
 
     bool staticTf;
+    tf2_msgs::TFMessage staticTfCache;
 
     std::string oldTfTopic, remappedTfTopic;
 
     TfRemapper tfRemapper;
 
     void oldTfCallback(const ros::MessageEvent<tf2_msgs::TFMessage const>& event);
+    void addToStaticTfCache(const tf2_msgs::TFMessage& message);
 };
 
 };

@@ -31,6 +31,14 @@ if(${CATKIN_ENABLE_TESTING})
   add_dependencies(test_tf_remapper ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
   target_link_libraries(test_tf_remapper ${PROJECT_NAME} ${catkin_LIBRARIES})
 
+  find_package(rostest REQUIRED)
+  find_package(tf2_ros REQUIRED)
+
+  add_executable(test_tf_remapper_node test/test_tf_remapper_node.cpp)
+  target_link_libraries(test_tf_remapper_node ${catkin_LIBRARIES} ${tf2_ros_LIBRARIES} ${GTEST_LIBRARIES})
+  add_rostest(test/test_tf_remapper_node.launch)
+  add_rostest(test/test_tf_remapper_node_static.launch)
+
   # In coverage build, you can choose either lcov or gcovr to generate the reports
   if ("${CMAKE_BUILD_TYPE}" STREQUAL "Coverage")
     include(cmake/CodeCoverage.cmake)

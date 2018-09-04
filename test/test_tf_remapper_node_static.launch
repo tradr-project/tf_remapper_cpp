@@ -1,0 +1,22 @@
+<launch>
+    <param name="/use_sim_time" value="false" />
+
+    <group>
+        <remap from="tf_static" to="tf_static_old" />
+        <node name="broadcaster_ab" pkg="tf2_ros" type="static_transform_publisher" args="1 2 3 4 5 6 a b"/>
+        <node name="broadcaster_de" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 d e"/>
+        <node name="broadcaster_fg" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 f g"/>
+        <node name="broadcaster_hi" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 h i"/>
+        <node name="broadcaster_ij" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 i j"/>
+        <node name="broadcaster_kl" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 k l"/>
+        <node name="broadcaster_yz" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 y z"/>
+    </group>
+
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remapper_cpp_node" output="screen">
+        <rosparam param="mappings">[{old: b, new: c}, {old: d, new: ''}, {old: g}, {old: i}, {old: k, new: k}]</rosparam>
+        <param name="old_tf_topic_name" value="/tf_static_old" />
+        <param name="new_tf_topic_name" value="/tf_static" />
+    </node>
+
+    <test test-name="tf_remapper_node" pkg="tf_remapper_cpp" type="test_tf_remapper_node" />
+</launch>
