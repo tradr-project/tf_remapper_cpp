@@ -17,13 +17,26 @@ tf_remapper_cpp::TfRemapperNode::TfRemapperNode() : privateNodeHandle("~")
     if (!hasMappingsParam)
         throw ros::InvalidParameterException("tf_remapper_cpp needs the private parameter 'mappings' set.");
 
+    const bool bidirectional = this->privateNodeHandle.param<bool>("is_bidirectional", false);
+
     this->tfRemapper = TfRemapper(mappingsParam);
+    if (bidirectional)
+        this->reverseTfRemapper = TfRemapper(mappingsParam, true);
 
     if (!tfRemapper.getMappings().empty()) {
-        ROS_INFO("Applying the following mappings to incoming tf frame ids:");
+        ROS_INFO_STREAM("Applying the following mappings" << (bidirectional ? " bidirectionally" : "") <<
+                        " to incoming tf frame ids:");
         for (TfRemapper::MappingsType::const_iterator it = tfRemapper.getMappings().begin();
                 it != tfRemapper.getMappings().end(); ++it) {
-            ROS_INFO_STREAM("* " << it->first << " -> " << (it->second.empty() ? "DELETE" : it->second));
+            ROS_INFO_STREAM("* " << it->first << " " << (bidirectional && !it->second.empty() ? "<" : "") << "-> " <<
+                                    (it->second.empty() ? "DELETE" : it->second));
+        }
+        if (bidirectional) {
+            for (TfRemapper::MappingsType::const_iterator it = reverseTfRemapper.getMappings().begin();
+                    it != reverseTfRemapper.getMappings().end(); ++it) {
+                if (it->second.empty())
+                    ROS_INFO_STREAM("* DELETE <- " << it->first);
+            }
         }
     } else {
         ROS_WARN("No mappings defined.");
@@ -38,10 +51,17 @@ tf_remapper_cpp::TfRemapperNode::TfRemapperNode() : privateNodeHandle("~")
             this->oldTfTopic, 100, &TfRemapperNode::oldTfCallback, this);
     this->remappedTfPublisher = this->publicNodeHandle.advertise<tf2_msgs::TFMessage>(
         this->remappedTfTopic, 100, this->staticTf);
+
+    if (bidirectional) {
+        this->remappedTfSubscriber = this->publicNodeHandle.subscribe(
+                this->remappedTfTopic, 100, &TfRemapperNode::remappedTfCallback, this);
+        this->oldTfPublisher = this->publicNodeHandle.advertise<tf2_msgs::TFMessage>(
+                this->oldTfTopic, 100, this->staticTf);
+    }
 }
 
 void tf_remapper_cpp::TfRemapperNode::oldTfCallback(const ros::MessageEvent<tf2_msgs::TFMessage const>& event) {
-    // Prevent reacting to own messages
+    // Prevent reacting to own messages from bidirectional mode
     const std::string& callerid = event.getPublisherName();
     if (callerid == ros::this_node::getName())
         return;
@@ -51,20 +71,39 @@ void tf_remapper_cpp::TfRemapperNode::oldTfCallback(const ros::MessageEvent<tf2_
     // Since static TF can come from many latched publishers, and we are only a single publisher, we must gather all
     // the static TF messages in a cache and every time publish all of them.
     if (this->staticTf) {
-        this->addToStaticTfCache(message);
+        this->addToStaticTfCache(message, this->staticTfCache);
         this->remappedTfPublisher.publish(this->staticTfCache);
     } else {
         this->remappedTfPublisher.publish(message);
     }
 }
 
-void tf_remapper_cpp::TfRemapperNode::addToStaticTfCache(const tf2_msgs::TFMessage& message) {
+void tf_remapper_cpp::TfRemapperNode::remappedTfCallback(const ros::MessageEvent<tf2_msgs::TFMessage const>& event) {
+    // Prevent reacting to own messages from bidirectional mode
+    const std::string& callerid = event.getPublisherName();
+    if (callerid == ros::this_node::getName())
+        return;
+
+    tf2_msgs::TFMessage message = this->reverseTfRemapper.doRemapping(*event.getConstMessage());
+
+    // Since static TF can come from many latched publishers, and we are only a single publisher, we must gather all
+    // the static TF messages in a cache and every time publish all of them.
+    if (this->staticTf) {
+        this->addToStaticTfCache(message, this->reverseStaticTfCache);
+        this->oldTfPublisher.publish(this->reverseStaticTfCache);
+    } else {
+        this->oldTfPublisher.publish(message);
+    }
+}
+
+void tf_remapper_cpp::TfRemapperNode::addToStaticTfCache(
+        const tf2_msgs::TFMessage& message, tf2_msgs::TFMessage& cache) const {
     // We do an inefficient O(N^2) search here, but there should not be that many static TFs that it would matter
     for (std::vector<geometry_msgs::TransformStamped>::const_iterator it = message.transforms.begin();
             it != message.transforms.end(); ++it) {
         bool found = false;
-        for (std::vector<geometry_msgs::TransformStamped>::iterator cacheIt = this->staticTfCache.transforms.begin();
-                cacheIt != this->staticTfCache.transforms.end(); ++cacheIt) {
+        for (std::vector<geometry_msgs::TransformStamped>::iterator cacheIt = cache.transforms.begin();
+                cacheIt != cache.transforms.end(); ++cacheIt) {
             if (it->child_frame_id == cacheIt->child_frame_id) {
                 found = true;
                 *cacheIt = *it;
@@ -72,7 +111,7 @@ void tf_remapper_cpp::TfRemapperNode::addToStaticTfCache(const tf2_msgs::TFMessa
             }
         }
         if (!found)
-            this->staticTfCache.transforms.push_back(*it);
+            cache.transforms.push_back(*it);
     }
 }
 

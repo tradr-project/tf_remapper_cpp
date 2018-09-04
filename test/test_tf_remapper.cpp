@@ -21,9 +21,20 @@ TEST(tf_remapper_cpp, testMappingsConstructor)
 {
     std::map<std::string, std::string> mappings;
     mappings["a"] = "b";
+    mappings["c"] = "d";
+    mappings["e"] = "";
     TfRemapper remap;
     EXPECT_NO_THROW(remap = TfRemapper(mappings));
-    EXPECT_EQ(1, remap.getMappings().size());
+    EXPECT_EQ(3, remap.getMappings().size());
+    EXPECT_EQ(mappings, remap.getMappings());
+
+    std::map<std::string, std::string> reverseMappings;
+    reverseMappings["b"] = "a";
+    reverseMappings["d"] = "c";
+    TfRemapper reverseRemap;
+    EXPECT_NO_THROW(reverseRemap = TfRemapper(mappings, true));
+    EXPECT_EQ(2, reverseRemap.getMappings().size());
+    EXPECT_EQ(reverseMappings, reverseRemap.getMappings());
 }
 
 TEST(tf_remapper_cpp, testAllowsEmptyMappings)
@@ -45,10 +56,10 @@ TEST(tf_remapper_cpp, testAllMappingsAreCopied)
     EXPECT_EQ(mappings, remap.getMappings());
 }
 
-TEST(tf_remapper_cpp, testThrowsOnEmptyOld)
+TEST(tf_remapper_cpp, testThrowsOnEmptyOldAndNew)
 {
     std::map<std::string, std::string> mappings;
-    mappings[""] = "b";
+    mappings[""] = "";
     TfRemapper remap;
     EXPECT_THROW(remap = TfRemapper(mappings), ros::InvalidParameterException);
     EXPECT_EQ(0, remap.getMappings().size());
@@ -268,6 +279,30 @@ TEST(tf_remapper_cpp, testXmlRpcValueConstructor)
          "                  </member>"
          "              </struct>"
          "          </value>"
+         "          <value>"
+         "              <struct>"
+         "                  <member>"
+         "                      <name>new</name>"
+         "                      <value></value>"
+         "                  </member>"
+         "                  <member>"
+         "                      <name>old</name>"
+         "                      <value>g</value>"
+         "                  </member>"
+         "              </struct>"
+         "          </value>"
+         "          <value>"
+         "              <struct>"
+         "                  <member>"
+         "                      <name>new</name>"
+         "                      <value>h</value>"
+         "                  </member>"
+         "                  <member>"
+         "                      <name>old</name>"
+         "                      <value></value>"
+         "                  </member>"
+         "              </struct>"
+         "          </value>"
          "      </data>"
          "  </array>"
          "</value>", &offset);
@@ -277,8 +312,19 @@ TEST(tf_remapper_cpp, testXmlRpcValueConstructor)
     mappings["d"] = "db";
     mappings["e"] = "eb";
     mappings["f"] = "f";
+    mappings["g"] = "";
     const TfRemapper remap = TfRemapper(xmlRpcMappings);
     EXPECT_EQ(mappings, remap.getMappings());
+
+    std::map<std::string, std::string> reverseMappings;
+    reverseMappings["ab"] = "a";
+    reverseMappings["cb"] = "c";
+    reverseMappings["db"] = "d";
+    reverseMappings["eb"] = "e";
+    reverseMappings["f"] = "f";
+    reverseMappings["h"] = "";
+    const TfRemapper reverseRemap = TfRemapper(xmlRpcMappings, true);
+    EXPECT_EQ(reverseMappings, reverseRemap.getMappings());
 }
 
 TEST(tf_remapper_cpp, testXmlRpcValueConstructorThrowsOnInvalidData)
@@ -322,12 +368,6 @@ TEST(tf_remapper_cpp, testXmlRpcValueConstructorThrowsOnInvalidData)
     {
         XmlRpc::XmlRpcValue xmlRpcMappings;
         xmlRpcMappings[0]["old"] = "";
-        EXPECT_THROW(TfRemapper remap = TfRemapper(xmlRpcMappings), ros::InvalidParameterException);
-    }
-    {
-        XmlRpc::XmlRpcValue xmlRpcMappings;
-        xmlRpcMappings[0]["old"] = "";
-        xmlRpcMappings[0]["new"] = "asd";
         EXPECT_THROW(TfRemapper remap = TfRemapper(xmlRpcMappings), ros::InvalidParameterException);
     }
     {

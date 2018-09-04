@@ -6,16 +6,23 @@ tf_remapper_cpp::TfRemapper::TfRemapper() {}
 
 tf_remapper_cpp::TfRemapper::~TfRemapper() {}
 
-tf_remapper_cpp::TfRemapper::TfRemapper(const std::map<std::string, std::string> mappings) {
+tf_remapper_cpp::TfRemapper::TfRemapper(const std::map<std::string, std::string> mappings, const bool reverse) {
     for (TfRemapper::MappingsType::const_iterator it = mappings.begin(); it != mappings.end(); ++it) {
         if (it->first.empty())
             throw ros::InvalidParameterException("Key 'old' in each mapping has to be set to a nonempty string.");
     }
 
-    this->mappings = mappings;
+    if (!reverse) {
+        this->mappings = mappings;
+    } else {
+        for (std::map<std::string, std::string>::const_iterator it = mappings.begin(); it != mappings.end(); ++it) {
+            if (!it->second.empty())
+                this->mappings[it->second] = it->first;
+        }
+    }
 }
 
-tf_remapper_cpp::TfRemapper::TfRemapper(const XmlRpc::XmlRpcValue& mappingsParam) {
+tf_remapper_cpp::TfRemapper::TfRemapper(const XmlRpc::XmlRpcValue& mappingsParam, const bool reverse) {
     if(mappingsParam.getType() != XmlRpc::XmlRpcValue::TypeArray)
         throw ros::InvalidParameterException("The 'mappings' parameter must be an array of dictionaries.");
 
@@ -26,25 +33,29 @@ tf_remapper_cpp::TfRemapper::TfRemapper(const XmlRpc::XmlRpcValue& mappingsParam
 
         std::string oldTopic;
         std::string newTopic;
+        const std::string oldKey = (reverse ? "new" : "old");
+        const std::string newKey = (reverse ? "old" : "new");
         for (XmlRpc::XmlRpcValue::iterator it = mapping.begin(); it != mapping.end(); ++it)
         {
             if (it->second.getType() != XmlRpc::XmlRpcValue::TypeString)
                 throw ros::InvalidParameterException("Dict values must be strings");
-            if (it->first == "old")
+            if (it->first == oldKey)
                 oldTopic = (const std::string&)it->second;
-            else if (it->first == "new")
+            else if (it->first == newKey)
                 newTopic = (std::string&)it->second;
             else
                 throw ros::InvalidParameterException("Each dict in the mapping has to have only keys 'old' and 'new'.");
         }
 
-        if (oldTopic.empty())
-            throw ros::InvalidParameterException("Key 'old' in each mapping has to be set to a nonempty string.");
+        if (oldTopic.empty() && newTopic.empty())
+            throw ros::InvalidParameterException("Either 'old' or 'new' key in each mapping has to be set to a "
+                                                 "nonempty string.");
 
         if (oldTopic == newTopic)
             ROS_WARN_STREAM("Remapped topic '" << oldTopic << "' is the same as the old topic.");
 
-        this->mappings[oldTopic] = newTopic;
+        if (!oldTopic.empty())
+            this->mappings[oldTopic] = newTopic;
     }
 }
 

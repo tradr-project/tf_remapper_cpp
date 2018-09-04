@@ -16,18 +16,19 @@ public:
 
 protected:
     ros::NodeHandle publicNodeHandle, privateNodeHandle;
-    ros::Subscriber oldTfSubscriber;
-    ros::Publisher remappedTfPublisher;
+    ros::Subscriber oldTfSubscriber, remappedTfSubscriber;
+    ros::Publisher remappedTfPublisher, oldTfPublisher;
 
     bool staticTf;
-    tf2_msgs::TFMessage staticTfCache;
+    tf2_msgs::TFMessage staticTfCache, reverseStaticTfCache;
 
     std::string oldTfTopic, remappedTfTopic;
 
-    TfRemapper tfRemapper;
+    TfRemapper tfRemapper, reverseTfRemapper;
 
     void oldTfCallback(const ros::MessageEvent<tf2_msgs::TFMessage const>& event);
-    void addToStaticTfCache(const tf2_msgs::TFMessage& message);
+    void remappedTfCallback(const ros::MessageEvent<tf2_msgs::TFMessage const>& event);
+    void addToStaticTfCache(const tf2_msgs::TFMessage& message, tf2_msgs::TFMessage& cache) const;
 };
 
 };

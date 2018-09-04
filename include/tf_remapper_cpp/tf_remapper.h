@@ -11,8 +11,8 @@ public:
     typedef std::map<std::string, std::string> MappingsType;
 
     TfRemapper();
-    explicit TfRemapper(MappingsType mappings);
-    explicit TfRemapper(const XmlRpc::XmlRpcValue& mappingsParam);
+    explicit TfRemapper(MappingsType mappings, bool reverse = false);
+    explicit TfRemapper(const XmlRpc::XmlRpcValue& mappingsParam, bool reverse = false);
     virtual ~TfRemapper();
 
     void doRemapping(tf2_msgs::TFMessage& message) const;
