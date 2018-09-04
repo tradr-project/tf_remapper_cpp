@@ -9,6 +9,7 @@ tf_remapper_cpp::TfRemapperNode::TfRemapperNode() : privateNodeHandle("~")
     if (this->privateNodeHandle.hasParam("static_tf"))
         this->staticTf = this->privateNodeHandle.param<bool>("static_tf", false);
     else
+        // Autodetect if the parameter is not set
         this->staticTf = this->remappedTfTopic == "tf_static" || this->remappedTfTopic == "/tf_static";
 
     // Parse the 'mappings' parameter, which should be an array of dicts, e.g. [{"old": "b", "new": "d"}]

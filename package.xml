@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>tf_remapper_cpp</name>
-  <version>1.0.0</version>
-  <description>Remap TFs.</description>
+  <version>1.1.0</version>
+  <description>More efficient version of tf/tf_remap able to handle TFs at kHz with tens of subscribers.</description>
 
   <maintainer email="peckama2@fel.cvut.cz">Martin Pecka</maintainer>
 
