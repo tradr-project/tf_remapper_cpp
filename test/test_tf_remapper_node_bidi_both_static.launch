@@ -1,0 +1,93 @@
+<launch>
+    <param name="/use_sim_time" value="false" />
+
+    <group>
+        <remap from="tf_static" to="tf_static_old" />
+
+        <node name="broadcaster_ab" pkg="tf2_ros" type="static_transform_publisher" args="1 2 3 4 5 6 a b"/>
+        <node name="broadcaster_de" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 d e"/>
+        <node name="broadcaster_uv" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 u v"/>
+        <node name="broadcaster_wx" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 w x"/>
+
+        <test test-name="check_tf_exists_back_ab" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="a" />
+            <param name="target_tf" value="b" />
+            <param name="should_succeed" value="true" />
+        </test>
+        <test test-name="check_tf_exists_back_ac" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="a" />
+            <param name="target_tf" value="c" />
+            <param name="should_succeed" value="false" />
+        </test>
+        <test test-name="check_tf_exists_back_de" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="d" />
+            <param name="target_tf" value="e" />
+            <param name="should_succeed" value="true" />
+        </test>
+        <test test-name="check_tf_exists_back_uv" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="u" />
+            <param name="target_tf" value="v" />
+            <param name="should_succeed" value="true" />
+        </test>
+        <test test-name="check_tf_exists_back_wx" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="w" />
+            <param name="target_tf" value="x" />
+            <param name="should_succeed" value="true" />
+        </test>
+        <test test-name="check_tf_exists_back_gi" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="g" />
+            <param name="target_tf" value="i" />
+            <param name="should_succeed" value="true" />
+        </test>
+        <test test-name="check_tf_exists_back_gh" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="g" />
+            <param name="target_tf" value="h" />
+            <param name="should_succeed" value="false" />
+        </test>
+        <test test-name="check_tf_exists_back_jk" pkg="tf_remapper_cpp" type="check_tf_exists">
+            <param name="source_tf" value="j" />
+            <param name="target_tf" value="k" />
+            <param name="should_succeed" value="true" />
+        </test>
+    </group>
+
+    <node name="broadcaster_gh" pkg="tf2_ros" type="static_transform_publisher" args="1 2 3 4 5 6 g h"/>
+    <node name="broadcaster_jk" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 j k"/>
+    <node name="broadcaster_yz" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 y z"/>
+    <node name="broadcaster_st" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 s t"/>
+
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen">
+        <rosparam param="mappings">[{old: b, new: c}, {old: u, new: ''}, {old: x, new: ''}, {old: i, new: h},
+            {old: '', new: y}, {old: '', new: t}]</rosparam>
+        <param name="is_bidirectional" value="true" />
+        <param name="old_tf_topic_name" value="/tf_static_old" />
+        <param name="new_tf_topic_name" value="/tf_static" />
+    </node>
+
+    <test test-name="check_tf_exists_forward_ac" pkg="tf_remapper_cpp" type="check_tf_exists">
+        <param name="source_tf" value="a" />
+        <param name="target_tf" value="c" />
+        <param name="should_succeed" value="true" />
+    </test>
+    <test test-name="check_tf_exists_forward_ab" pkg="tf_remapper_cpp" type="check_tf_exists">
+        <param name="source_tf" value="a" />
+        <param name="target_tf" value="b" />
+        <param name="should_succeed" value="false" />
+    </test>
+    <test test-name="check_tf_exists_forward_de" pkg="tf_remapper_cpp" type="check_tf_exists">
+        <param name="source_tf" value="d" />
+        <param name="target_tf" value="e" />
+        <param name="should_succeed" value="true" />
+    </test>
+    <test test-name="check_tf_exists_forward_gh" pkg="tf_remapper_cpp" type="check_tf_exists">
+        <param name="source_tf" value="g" />
+        <param name="target_tf" value="h" />
+        <param name="should_succeed" value="true" />
+    </test>
+    <test test-name="check_tf_exists_forward_jk" pkg="tf_remapper_cpp" type="check_tf_exists">
+        <param name="source_tf" value="j" />
+        <param name="target_tf" value="k" />
+        <param name="should_succeed" value="true" />
+    </test>
+
+</launch>

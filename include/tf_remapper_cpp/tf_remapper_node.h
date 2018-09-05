@@ -30,16 +30,22 @@ public:
     virtual ~TfRemapperNode() {};
 
 protected:
-    ros::NodeHandle publicNodeHandle, privateNodeHandle; //! \brief ROS node handle.
-    ros::Subscriber oldTfSubscriber, remappedTfSubscriber; //! \brief Subscriber.
-    ros::Publisher remappedTfPublisher, oldTfPublisher; //! \brief Publisher.
+    ros::NodeHandle publicNodeHandle; //! \brief ROS node handle.
+    ros::NodeHandle privateNodeHandle; //! \brief Private ROS node handle.
+    ros::Subscriber oldTfSubscriber; //! \brief Subscriber to /tf_old.
+    ros::Subscriber remappedTfSubscriber; //! \brief Subscriber to /tf (only in bidirectional mode).
+    ros::Publisher remappedTfPublisher; //! \brief Publisher of /tf.
+    ros::Publisher oldTfPublisher; //! \brief Publisher of /tf_old (only in bidirectional mode).
 
     bool staticTf; //! \brief If true, this node works with static TF, which need special care.
-    tf2_msgs::TFMessage staticTfCache, reverseStaticTfCache; //! \brief Cache of static TF messages.
+    tf2_msgs::TFMessage staticTfCache; //! \brief Cache of static TF messages.
+    tf2_msgs::TFMessage reverseStaticTfCache; //! \brief Cache of static TF messages in the reverse direction.
 
-    std::string oldTfTopic, remappedTfTopic; //! \brief Name of the old/remapped topic.
+    std::string oldTfTopic; //! \brief Name of the old topic ("/tf_old").
+    std::string remappedTfTopic; //! \brief Name of the remapped topic ("/tf").
 
-    TfRemapper tfRemapper, reverseTfRemapper; //! \brief The remapper that actually changes the TF messages.
+    TfRemapper tfRemapper; //! \brief The remapper that actually changes the TF messages.
+    TfRemapper reverseTfRemapper; //! \brief The remapper that actually changes the TF messages in reverse direction.
 
     //! \brief Callback when a TF message arrives on the old TF topic.
     //! \param event The TF message.

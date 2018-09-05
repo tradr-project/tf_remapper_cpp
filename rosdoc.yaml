@@ -1,0 +1,4 @@
+- builder: doxygen
+  file_patterns: '*.cpp *.h *.md'
+  use_mdfile_as_mainpage: README.md
+  exclude_patterns: '*/cmake-build-*/* */test/*'

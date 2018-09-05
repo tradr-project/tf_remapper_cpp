@@ -1,0 +1,21 @@
+<launch>
+    <param name="/use_sim_time" value="false" />
+
+    <group>
+        <remap from="tf" to="tf_old" />
+        <node name="broadcaster_yz" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 y z 10"/>
+    </group>
+
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen"/>
+
+    <test name="publishtest"
+          test-name="publishtest"
+          pkg="rostest" type="hztest">
+        <rosparam>
+            topic: tf
+            hz: 0
+            hzerror: 0
+            test_duration: 1
+        </rosparam>
+    </test>
+</launch>

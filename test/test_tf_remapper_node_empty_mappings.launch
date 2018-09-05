@@ -1,0 +1,17 @@
+<launch>
+    <param name="/use_sim_time" value="false" />
+
+    <group>
+        <remap from="tf" to="tf_old" />
+        <node name="broadcaster_ab" pkg="tf" type="static_transform_publisher" args="1 2 3 4 5 6 a c 10"/>
+        <node name="broadcaster_kl" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 k l 10"/>
+
+        <node name="broadcaster_yz" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 y z 10"/>
+    </group>
+
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen">
+        <rosparam param="mappings">[]</rosparam>
+    </node>
+
+    <test test-name="tf_remapper_node" pkg="tf_remapper_cpp" type="test_tf_remapper_node" />
+</launch>
