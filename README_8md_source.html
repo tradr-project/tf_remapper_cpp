@@ -47,106 +47,107 @@
 <div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;- Backwards **compatible with [tf/tf_remap](https:<span class="comment">//github.com/ros/geometry/blob/melodic-devel/tf/scripts/tf_remap)**</span></div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160;    - to use this remapper, just change package name from `tf` to `tf_remapper_cpp` in your launch files</div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;    - all the new functionality should not endanger the basic usage, since the package is accompanied by an exhaustive test suite</div>
-<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;- Documentation and [usage examples](#example-usage-in-launch-files)</div>
-<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;</div>
-<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;## Nodes</div>
-<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;</div>
-<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;### tf\_remapper\_cpp/tf\_remap</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;The node that performs the TF remapping.</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;#### Private parameters</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;- **`mappings`** (`array of dicts`): The rules for TF frame name remapping, e.g. `[{&quot;old&quot;: &quot;b&quot;, &quot;new&quot;: &quot;d&quot;}]`. Each dict presents one remapping rule. Each dict contains keys `old` and `new`. If either of these keys is missing or its value is empty string, it means the TF frame should be deleted.</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    - Until [ros_comm#1498](https:<span class="comment">//github.com/ros/ros_comm/issues/1498) is fixed, you can not pass this parameter from `rosrun` commandline - either set it in a launch file, or use `rosparam set /tf_remapper/mappings &#39;[{&quot;old&quot;: &quot;b&quot;, &quot;new&quot;: &quot;d&quot;}]&#39;` before launching this node.</span></div>
-<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;- **`static_tf`** (`bool`): Whether the remapper acts on static TFs or not. If not set, it is autodetected from `new_tf_topic_name` parameter.</div>
-<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;    - Static TFs need special handling, so be sure to have this parameter set correctly, otherwise it can cause performance issues (when used with non-static TFs) or incorrect operation (if not used with static TFs).</div>
-<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    - Autodetection checks if the `new_tf_topic_name` is `tf_static` or `/tf_static`, and if it is, then `static_tf` is set to `True`, otherwise it is set to `False`.</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;- **`old_tf_topic_name`** (`string`, default `&#39;/tf_old&#39;`): The topic on which old TFs are subscribed.</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;- **`new_tf_topic_name`** (`string`, default `&#39;/tf&#39;`): The topic on which remapped TFs are published.</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;- **`is_bidirectional`** (`bool`, default `False`): If `True`, the remapper will also allow passing TFs published on the &quot;remapped end&quot; to the &quot;old end&quot; via a reverse mapping. </div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;    - Pay special attention if you use any kind of multimaster solution or a custom topic transport. This node needs CallerIDs to be unchanged. If this contract is broken, the node will probably enter an infinite loop reacting to its own published messages.</div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;#### Subscribed topics</div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;- **`/tf_old`** (or any other topic set in `old_tf_topic_name`; type `tf2_ros/TFMessage`): The original TF messages that are to be remapped.</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;- **`/tf`** (or any other topic set in `new_tf_topic_name`; only <span class="keywordflow">if</span> `is_bidirectional == True`; type `tf2_ros/TFMessage`): The TF messages with remapped frames. If some node publises to <span class="keyword">this</span> topic and <span class="keyword">this</span> remapper is running in bidirectional mode, it sends the newly published transforms back to `/tf_old`.</div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;#### Published topics</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;- **`/tf`** (or any other topic set in `new_tf_topic_name`; type `tf2_ros/</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;TFMessage`): The TF messages with remapped frames.</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;- **`/tf_old`** (or any other topic set in `old_tf_topic_name`; only <span class="keywordflow">if</span> `is_bidirectional == True`; type `tf2_ros/TFMessage`): The original TF messages. If some node publises to `/tf` and <span class="keyword">this</span> remapper is running in bidirectional mode, it sends the newly published transforms back to <span class="keyword">this</span> topic.</div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;## Example usage in launch files</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">### simple.launch</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    &lt;launch&gt;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;        &lt;group&gt;</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;            &lt;remap from=<span class="stringliteral">&quot;tf&quot;</span> to=<span class="stringliteral">&quot;tf_old&quot;</span> /&gt;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;            &lt;!-- The tf(1) static_transform_publisher does not use /tf_static, but periodically publises to /tf --&gt;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;            &lt;node name=&quot;broadcaster_ab&quot; pkg=&quot;tf&quot; type=&quot;static_transform_publisher&quot; args=&quot;1 2 3 4 5 6 a b 10&quot;/&gt;</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;            &lt;!-- Usually, there would be e.g. a rosbag play instead of the static tf publisher. --&gt;</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;        &lt;/group&gt;</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        &lt;node name=&quot;remapper&quot; pkg=&quot;tf_remapper_cpp&quot; type=&quot;tf_remap&quot;&gt;</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;            &lt;rosparam param=&quot;mappings&quot;&gt;[{old: b, <span class="keyword">new</span>: c}]&lt;/rosparam&gt;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;        &lt;/node&gt;</div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;        &lt;!-- This node will see transform a-&gt;c --&gt;</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        &lt;node name=<span class="stringliteral">&quot;my_node&quot;</span> pkg=<span class="stringliteral">&quot;my_pkg&quot;</span> type=<span class="stringliteral">&quot;node_type&quot;</span> /&gt;</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    &lt;/launch&gt;</div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    </div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">### static_tf.launch</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;    &lt;launch&gt;</div>
-<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;        &lt;group&gt;</div>
-<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;            &lt;remap from=<span class="stringliteral">&quot;tf_static&quot;</span> to=<span class="stringliteral">&quot;tf_static_old&quot;</span> /&gt;</div>
-<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;            &lt;!-- The tf2 static_transform_publisher uses /tf_static --&gt;</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;            &lt;node name=<span class="stringliteral">&quot;broadcaster_ab&quot;</span> pkg=<span class="stringliteral">&quot;tf2_ros&quot;</span> type=<span class="stringliteral">&quot;static_transform_publisher&quot;</span> args=<span class="stringliteral">&quot;1 2 3 4 5 6 a b&quot;</span>/&gt;</div>
-<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            &lt;!-- Usually, there would be e.g. a rosbag play instead of the <span class="keyword">static</span> tf publisher. --&gt;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        &lt;/group&gt;</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;        &lt;node name=<span class="stringliteral">&quot;remapper&quot;</span> pkg=<span class="stringliteral">&quot;tf_remapper_cpp&quot;</span> type=<span class="stringliteral">&quot;tf_remap&quot;</span>&gt;</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;            &lt;rosparam param=<span class="stringliteral">&quot;mappings&quot;</span>&gt;[{old: b, <span class="keyword">new</span>: c}]&lt;/rosparam&gt;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;            &lt;!--&lt;param name=<span class="stringliteral">&quot;static_tf&quot;</span> value=<span class="stringliteral">&quot;true&quot;</span> /&gt;  - <span class="keyword">this</span> is not needed, autodetection works in <span class="keyword">this</span> <span class="keywordflow">case</span> --&gt;</div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;        &lt;/node&gt;</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;        &lt;!-- This node will see <span class="keyword">static</span> transform a-&gt;c --&gt;</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        &lt;node name=<span class="stringliteral">&quot;my_node&quot;</span> pkg=<span class="stringliteral">&quot;my_pkg&quot;</span> type=<span class="stringliteral">&quot;node_type&quot;</span> /&gt;</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    &lt;/launch&gt;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    </div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;<span class="preprocessor">### bidirectional.launch</span></div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;    &lt;launch&gt;</div>
-<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;        &lt;group&gt;</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;            &lt;remap from=<span class="stringliteral">&quot;tf&quot;</span> to=<span class="stringliteral">&quot;tf_old&quot;</span> /&gt;</div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            &lt;!-- The tf(1) static_transform_publisher does not use /tf_static, but periodically publises to /tf --&gt;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;            &lt;node name=&quot;broadcaster_ab&quot; pkg=&quot;tf&quot; type=&quot;static_transform_publisher&quot; args=&quot;1 2 3 4 5 6 a b 10&quot;/&gt;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            &lt;!-- Usually, there would be e.g. a rosbag play instead of the static tf publisher. --&gt;</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;            </div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            &lt;!-- This node will see transforms a-&gt;b and d-&gt;e --&gt;</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            &lt;node name=&quot;my_node2&quot; pkg=&quot;my_pkg&quot; type=&quot;node_type&quot; /&gt;</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;        &lt;/group&gt;</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;</div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;        &lt;node name=&quot;remapper&quot; pkg=&quot;tf_remapper_cpp&quot; type=&quot;tf_remap&quot;&gt;</div>
-<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;            &lt;rosparam param=&quot;mappings&quot;&gt;[{old: b, <span class="keyword">new</span>: c}, {old: e, <span class="keyword">new</span>: f}]&lt;/rosparam&gt;</div>
-<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;            &lt;param name=<span class="stringliteral">&quot;is_bidirectional&quot;</span> value=<span class="stringliteral">&quot;true&quot;</span> /&gt;</div>
-<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;        &lt;/node&gt;</div>
-<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;</div>
-<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;        &lt;!-- This node will see transforms a-&gt;c and d-&gt;f --&gt;</div>
-<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        &lt;node name=<span class="stringliteral">&quot;my_node&quot;</span> pkg=<span class="stringliteral">&quot;my_pkg&quot;</span> type=<span class="stringliteral">&quot;node_type&quot;</span> /&gt;</div>
-<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        </div>
-<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        &lt;node name=<span class="stringliteral">&quot;broadcaster_df&quot;</span> pkg=<span class="stringliteral">&quot;tf&quot;</span> type=<span class="stringliteral">&quot;static_transform_publisher&quot;</span> args=<span class="stringliteral">&quot;1 2 3 4 5 6 d f 10&quot;</span>/&gt;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;    &lt;/launch&gt;</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;- [API Documentation](https:<span class="comment">//tradr-project.github.io/tf_remapper_cpp/md_README.html) and [usage examples](#example-usage-in-launch-files)</span></div>
+<div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;    - the remapping logic is available in dynamic library `libtf_remapper_cpp.so`, class [`TfRemapper`](https:<span class="comment">//tradr-project.github.io/tf_remapper_cpp/classtf__remapper__cpp_1_1TfRemapper.html)</span></div>
+<div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;</div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;## Nodes</div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;</div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;### tf\_remapper\_cpp/tf\_remap</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;</div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;The node that performs the TF remapping.</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;#### Private parameters</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;- **`mappings`** (`array of dicts`): The rules for TF frame name remapping, e.g. `[{&quot;old&quot;: &quot;b&quot;, &quot;new&quot;: &quot;d&quot;}]`. Each dict presents one remapping rule. Each dict contains keys `old` and `new`. If either of these keys is missing or its value is empty string, it means the TF frame should be deleted.</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;    - Until [ros_comm#1498](https:<span class="comment">//github.com/ros/ros_comm/issues/1498) is fixed, you can not pass this parameter from `rosrun` commandline - either set it in a launch file, or use `rosparam set /tf_remapper/mappings &#39;[{&quot;old&quot;: &quot;b&quot;, &quot;new&quot;: &quot;d&quot;}]&#39;` before launching this node.</span></div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;- **`static_tf`** (`bool`): Whether the remapper acts on static TFs or not. If not set, it is autodetected from `new_tf_topic_name` parameter.</div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;    - Static TFs need special handling, so be sure to have this parameter set correctly, otherwise it can cause performance issues (when used with non-static TFs) or incorrect operation (if not used with static TFs).</div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    - Autodetection checks if the `new_tf_topic_name` is `tf_static` or `/tf_static`, and if it is, then `static_tf` is set to `True`, otherwise it is set to `False`.</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;- **`old_tf_topic_name`** (`string`, default `&#39;/tf_old&#39;`): The topic on which old TFs are subscribed.</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;- **`new_tf_topic_name`** (`string`, default `&#39;/tf&#39;`): The topic on which remapped TFs are published.</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;- **`is_bidirectional`** (`bool`, default `False`): If `True`, the remapper will also allow passing TFs published on the &quot;remapped end&quot; to the &quot;old end&quot; via a reverse mapping. </div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    - Pay special attention if you use any kind of multimaster solution or a custom topic transport. This node needs CallerIDs to be unchanged. If this contract is broken, the node will probably enter an infinite loop reacting to its own published messages.</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;#### Subscribed topics</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;- **`/tf_old`** (or any other topic set in `old_tf_topic_name`; type `tf2_ros/TFMessage`): The original TF messages that are to be remapped.</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;- **`/tf`** (or any other topic set in `new_tf_topic_name`; only <span class="keywordflow">if</span> `is_bidirectional == True`; type `tf2_ros/TFMessage`): The TF messages with remapped frames. If some node publises to <span class="keyword">this</span> topic and <span class="keyword">this</span> remapper is running in bidirectional mode, it sends the newly published transforms back to `/tf_old`.</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;#### Published topics</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;- **`/tf`** (or any other topic set in `new_tf_topic_name`; type `tf2_ros/</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;TFMessage`): The TF messages with remapped frames.</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;- **`/tf_old`** (or any other topic set in `old_tf_topic_name`; only <span class="keywordflow">if</span> `is_bidirectional == True`; type `tf2_ros/TFMessage`): The original TF messages. If some node publises to `/tf` and <span class="keyword">this</span> remapper is running in bidirectional mode, it sends the newly published transforms back to <span class="keyword">this</span> topic.</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;## Example usage in launch files</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">### simple.launch</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    &lt;launch&gt;</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;        &lt;group&gt;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;            &lt;remap from=<span class="stringliteral">&quot;tf&quot;</span> to=<span class="stringliteral">&quot;tf_old&quot;</span> /&gt;</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;            &lt;!-- The tf(1) static_transform_publisher does not use /tf_static, but periodically publises to /tf --&gt;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;            &lt;node name=&quot;broadcaster_ab&quot; pkg=&quot;tf&quot; type=&quot;static_transform_publisher&quot; args=&quot;1 2 3 4 5 6 a b 10&quot;/&gt;</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;            &lt;!-- Usually, there would be e.g. a rosbag play instead of the static tf publisher. --&gt;</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;        &lt;/group&gt;</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;        &lt;node name=&quot;remapper&quot; pkg=&quot;tf_remapper_cpp&quot; type=&quot;tf_remap&quot;&gt;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;            &lt;rosparam param=&quot;mappings&quot;&gt;[{old: b, <span class="keyword">new</span>: c}]&lt;/rosparam&gt;</div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;        &lt;/node&gt;</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;        &lt;!-- This node will see transform a-&gt;c --&gt;</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;        &lt;node name=<span class="stringliteral">&quot;my_node&quot;</span> pkg=<span class="stringliteral">&quot;my_pkg&quot;</span> type=<span class="stringliteral">&quot;node_type&quot;</span> /&gt;</div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    &lt;/launch&gt;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    </div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="preprocessor">### static_tf.launch</span></div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;</div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160;    &lt;launch&gt;</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;        &lt;group&gt;</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;            &lt;remap from=<span class="stringliteral">&quot;tf_static&quot;</span> to=<span class="stringliteral">&quot;tf_static_old&quot;</span> /&gt;</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;            &lt;!-- The tf2 static_transform_publisher uses /tf_static --&gt;</div>
+<div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;            &lt;node name=<span class="stringliteral">&quot;broadcaster_ab&quot;</span> pkg=<span class="stringliteral">&quot;tf2_ros&quot;</span> type=<span class="stringliteral">&quot;static_transform_publisher&quot;</span> args=<span class="stringliteral">&quot;1 2 3 4 5 6 a b&quot;</span>/&gt;</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;            &lt;!-- Usually, there would be e.g. a rosbag play instead of the <span class="keyword">static</span> tf publisher. --&gt;</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        &lt;/group&gt;</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;        &lt;node name=<span class="stringliteral">&quot;remapper&quot;</span> pkg=<span class="stringliteral">&quot;tf_remapper_cpp&quot;</span> type=<span class="stringliteral">&quot;tf_remap&quot;</span>&gt;</div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;            &lt;rosparam param=<span class="stringliteral">&quot;mappings&quot;</span>&gt;[{old: b, <span class="keyword">new</span>: c}]&lt;/rosparam&gt;</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;            &lt;!--&lt;param name=<span class="stringliteral">&quot;static_tf&quot;</span> value=<span class="stringliteral">&quot;true&quot;</span> /&gt;  - <span class="keyword">this</span> is not needed, autodetection works in <span class="keyword">this</span> <span class="keywordflow">case</span> --&gt;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;        &lt;/node&gt;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;        &lt;!-- This node will see <span class="keyword">static</span> transform a-&gt;c --&gt;</div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;        &lt;node name=<span class="stringliteral">&quot;my_node&quot;</span> pkg=<span class="stringliteral">&quot;my_pkg&quot;</span> type=<span class="stringliteral">&quot;node_type&quot;</span> /&gt;</div>
+<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;    &lt;/launch&gt;</div>
+<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;    </div>
+<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;<span class="preprocessor">### bidirectional.launch</span></div>
+<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160;</div>
+<div class="line"><a name="l00095"></a><span class="lineno">   95</span>&#160;    &lt;launch&gt;</div>
+<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;        &lt;group&gt;</div>
+<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;            &lt;remap from=<span class="stringliteral">&quot;tf&quot;</span> to=<span class="stringliteral">&quot;tf_old&quot;</span> /&gt;</div>
+<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;            &lt;!-- The tf(1) static_transform_publisher does not use /tf_static, but periodically publises to /tf --&gt;</div>
+<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;            &lt;node name=&quot;broadcaster_ab&quot; pkg=&quot;tf&quot; type=&quot;static_transform_publisher&quot; args=&quot;1 2 3 4 5 6 a b 10&quot;/&gt;</div>
+<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;            &lt;!-- Usually, there would be e.g. a rosbag play instead of the static tf publisher. --&gt;</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;            </div>
+<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;            &lt;!-- This node will see transforms a-&gt;b and d-&gt;e --&gt;</div>
+<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;            &lt;node name=&quot;my_node2&quot; pkg=&quot;my_pkg&quot; type=&quot;node_type&quot; /&gt;</div>
+<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160;        &lt;/group&gt;</div>
+<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;</div>
+<div class="line"><a name="l00106"></a><span class="lineno">  106</span>&#160;        &lt;node name=&quot;remapper&quot; pkg=&quot;tf_remapper_cpp&quot; type=&quot;tf_remap&quot;&gt;</div>
+<div class="line"><a name="l00107"></a><span class="lineno">  107</span>&#160;            &lt;rosparam param=&quot;mappings&quot;&gt;[{old: b, <span class="keyword">new</span>: c}, {old: e, <span class="keyword">new</span>: f}]&lt;/rosparam&gt;</div>
+<div class="line"><a name="l00108"></a><span class="lineno">  108</span>&#160;            &lt;param name=<span class="stringliteral">&quot;is_bidirectional&quot;</span> value=<span class="stringliteral">&quot;true&quot;</span> /&gt;</div>
+<div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;        &lt;/node&gt;</div>
+<div class="line"><a name="l00110"></a><span class="lineno">  110</span>&#160;</div>
+<div class="line"><a name="l00111"></a><span class="lineno">  111</span>&#160;        &lt;!-- This node will see transforms a-&gt;c and d-&gt;f --&gt;</div>
+<div class="line"><a name="l00112"></a><span class="lineno">  112</span>&#160;        &lt;node name=<span class="stringliteral">&quot;my_node&quot;</span> pkg=<span class="stringliteral">&quot;my_pkg&quot;</span> type=<span class="stringliteral">&quot;node_type&quot;</span> /&gt;</div>
+<div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;        </div>
+<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;        &lt;node name=<span class="stringliteral">&quot;broadcaster_df&quot;</span> pkg=<span class="stringliteral">&quot;tf&quot;</span> type=<span class="stringliteral">&quot;static_transform_publisher&quot;</span> args=<span class="stringliteral">&quot;1 2 3 4 5 6 d f 10&quot;</span>/&gt;</div>
+<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;    &lt;/launch&gt;</div>
 </div><!-- fragment --></div><!-- contents -->
 
 <br clear="all" />
 <hr size="1"><div style="align: right;">
 <a href="http://wiki.ros.org/tf_remapper_cpp">tf_remapper_cpp</a><br />
 Author(s): Martin Pecka <peckama2@fel.cvut.cz></br />
-<small>autogenerated on Wed Sep 5 2018 16:59:31</small>
+<small>autogenerated on Wed Sep 5 2018 17:04:11</small>
 </div>
 </body>
 </html>
