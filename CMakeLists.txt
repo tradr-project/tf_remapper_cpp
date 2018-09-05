@@ -61,6 +61,14 @@ if(${CATKIN_ENABLE_TESTING})
       SETUP_TARGET_FOR_COVERAGE_LCOV(NAME ${PROJECT_NAME}_coverage EXECUTABLE test_tf_remapper)
     endif()
     add_dependencies(${PROJECT_NAME}_coverage test_tf_remapper_node check_tf_exists tf_remap run_tests)
+
+    add_custom_target(upload_coverage_to_codecov
+        COMMAND curl -s -o codecov.bash https://codecov.io/bash
+        COMMAND bash codecov.bash || echo "Codecov did not collect coverage reports"
+        COMMAND ${CMAKE_COMMAND} -E remove codecov.bash
+        WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+        COMMENT "Uploading codecov data."
+        )
   endif()
 endif()
 
