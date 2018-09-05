@@ -1,6 +1,6 @@
 # TF remapper (more efficient and versatile C++ version)
 
-[![codecov](https://codecov.io/gh/tradr-project/tf_remapper_cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/tradr-project/tf_remapper_cpp)
+[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause) [![codecov](https://codecov.io/gh/tradr-project/tf_remapper_cpp/branch/master/graph/badge.svg)](https://codecov.io/gh/tradr-project/tf_remapper_cpp)
 
 This package is an alternative to official ROS node [tf/tf_remap](https://github.com/ros/geometry/blob/melodic-devel/tf/scripts/tf_remap) with the following advantages:
 
