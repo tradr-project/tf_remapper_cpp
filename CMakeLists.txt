@@ -72,6 +72,32 @@ if(${CATKIN_ENABLE_TESTING})
   endif()
 endif()
 
+# Docs
+
+add_custom_target(docs
+    COMMAND rosdoc_lite .
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Generating documentaiton")
+
+add_custom_target(upload_docs
+    COMMAND
+      mkdir -p /tmp/${PROJECT_NAME}-docs &&
+      cd /tmp/${PROJECT_NAME}-docs &&
+      rm -rf /tmp/${PROJECT_NAME}-docs/${PROJECT_NAME} &&
+      git clone -b gh-pages --depth 1 git@github.com:tradr-project/${PROJECT_NAME}.git &&
+      cd ${PROJECT_NAME} &&
+      touch .nojekyll &&
+      rsync -aAP ${PROJECT_SOURCE_DIR}/doc/html/ . &&
+      git add --all &&
+      git commit -m "Docs build" &&
+      git push origin gh-pages &&
+      cd /tmp
+    COMMAND rm -rf /tmp/${PROJECT_NAME}-docs/${PROJECT_NAME}
+    WORKING_DIRECTORY /tmp
+    COMMENT "Uploading documentation"
+    )
+add_dependencies(upload_docs docs)
+
 # Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME} ${PROJECT_NAME} tf_remap
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

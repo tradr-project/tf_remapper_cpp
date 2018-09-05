@@ -19,7 +19,8 @@ This package is an alternative to official ROS node [tf/tf_remap](https://github
 - Backwards **compatible with [tf/tf_remap](https://github.com/ros/geometry/blob/melodic-devel/tf/scripts/tf_remap)**
     - to use this remapper, just change package name from `tf` to `tf_remapper_cpp` in your launch files
     - all the new functionality should not endanger the basic usage, since the package is accompanied by an exhaustive test suite
-- Documentation and [usage examples](#example-usage-in-launch-files)
+- [API Documentation](https://tradr-project.github.io/tf_remapper_cpp/md_README.html) and [usage examples](#example-usage-in-launch-files)
+    - the remapping logic is available in dynamic library `libtf_remapper_cpp.so`, class [`TfRemapper`](https://tradr-project.github.io/tf_remapper_cpp/classtf__remapper__cpp_1_1TfRemapper.html)
 
 ## Nodes
 
