@@ -55,12 +55,12 @@ if(${CATKIN_ENABLE_TESTING})
     if(${COVERAGE_GCOVR})
       set(COVERAGE_GCOVR_EXCLUDES "'/opt/ros/*'" "'/usr/*'" "test/*" ${COVERAGE_GCOVR_ADDITIONAL_EXCLUDES})
       SETUP_TARGET_FOR_COVERAGE_GCOVR_HTML(NAME ${PROJECT_NAME}_coverage EXECUTABLE test_tf_remapper)
+      add_dependencies(${PROJECT_NAME}_coverage test_tf_remapper_node check_tf_exists tf_remap run_tests)
     else()
-      set(COVERAGE_LCOV_EXCLUDES "'/opt/ros/*'" "'/usr/*'" "test/*" "src/tf_remapper_node.cpp"
-          "include/tf_remapper_cpp/tf_remapper_node.h" ${COVERAGE_LCOV_ADDITIONAL_EXCLUDES})
-      SETUP_TARGET_FOR_COVERAGE_LCOV(NAME ${PROJECT_NAME}_coverage EXECUTABLE test_tf_remapper)
+      set(COVERAGE_LCOV_EXCLUDES "'/opt/ros/*'" "'/usr/*'" "test/*" ${COVERAGE_LCOV_ADDITIONAL_EXCLUDES})
+      SETUP_TARGET_FOR_COVERAGE_LCOV(NAME ${PROJECT_NAME}_coverage EXECUTABLE test_tf_remapper DEPENDENCIES run_tests)
+      add_dependencies(${PROJECT_NAME}_coverage test_tf_remapper_node check_tf_exists tf_remap)
     endif()
-    add_dependencies(${PROJECT_NAME}_coverage test_tf_remapper_node check_tf_exists tf_remap run_tests)
 
     add_custom_target(upload_coverage_to_codecov
         COMMAND curl -s -o codecov.bash https://codecov.io/bash

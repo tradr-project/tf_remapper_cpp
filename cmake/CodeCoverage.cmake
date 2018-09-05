@@ -147,14 +147,23 @@ function(SETUP_TARGET_FOR_COVERAGE_LCOV)
     message(FATAL_ERROR "genhtml not found! Aborting...")
   endif() # NOT GENHTML_PATH
 
+  add_custom_target(${Coverage_NAME}_init
+
+    # Cleanup lcov
+    COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -directory . --zerocounters
+    # Create baseline to make sure untouched files show up in the report
+    COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -c -i -d . -o ${Coverage_NAME}.base
+
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    COMMENT "Resetting code coverage counters to zero."
+    )
+
+  foreach(DEPENDENCY ${Coverage_DEPENDENCIES})
+    add_dependencies(${DEPENDENCY} ${Coverage_NAME}_init)
+  endforeach()
+
   # Setup target
   add_custom_target(${Coverage_NAME}
-
-      # Cleanup lcov
-      COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -directory . --zerocounters
-      # Create baseline to make sure untouched files show up in the report
-      COMMAND ${LCOV_PATH} --gcov-tool ${GCOV_PATH} -c -i -d . -o ${Coverage_NAME}.base
-
       # Run tests
       COMMAND ${Coverage_EXECUTABLE}
 
@@ -168,7 +177,7 @@ function(SETUP_TARGET_FOR_COVERAGE_LCOV)
 
       WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
       DEPENDS ${Coverage_DEPENDENCIES}
-      COMMENT "Resetting code coverage counters to zero.\nProcessing code coverage counters and generating report."
+      COMMENT "Processing code coverage counters and generating report."
       )
 
   # Show where to find the lcov info report
