@@ -13,7 +13,7 @@
         <node name="broadcaster_yz" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 y z 10"/>
     </group>
 
-    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remapper_cpp_node" output="screen">
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen">
         <rosparam param="mappings">[{old: b, new: c}, {old: d, new: ''}, {old: g}, {old: i}, {old: k, new: k}]</rosparam>
     </node>
 

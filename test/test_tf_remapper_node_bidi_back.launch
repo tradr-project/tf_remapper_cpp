@@ -11,7 +11,7 @@
     <node name="broadcaster_kl" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 k l 10"/>
     <node name="broadcaster_yz" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 x z 10"/>
 
-    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remapper_cpp_node" output="screen">
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen">
         <rosparam param="mappings">[{old: c, new: b}, {old: d, new: ''}, {old: '', new: d}, {old: k, new: k}, {old: y, new: x}]</rosparam>
         <param name="is_bidirectional" value="true" />
     </node>

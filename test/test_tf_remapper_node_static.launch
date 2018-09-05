@@ -12,7 +12,7 @@
         <node name="broadcaster_yz" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0 0 0 0 y z"/>
     </group>
 
-    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remapper_cpp_node" output="screen">
+    <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen">
         <rosparam param="mappings">[{old: b, new: c}, {old: d, new: ''}, {old: g}, {old: i}, {old: k, new: k}]</rosparam>
         <param name="old_tf_topic_name" value="/tf_static_old" />
         <param name="new_tf_topic_name" value="/tf_static" />
