@@ -15,8 +15,10 @@ tf_remapper_cpp::TfRemapperNode::TfRemapperNode() : privateNodeHandle("~")
     // Parse the 'mappings' parameter, which should be an array of dicts, e.g. [{"old": "b", "new": "d"}]
     XmlRpc::XmlRpcValue mappingsParam;
     const bool hasMappingsParam = this->privateNodeHandle.getParam("mappings", mappingsParam);
-    if (!hasMappingsParam)
-        throw ros::InvalidParameterException("tf_remapper_cpp needs the private parameter 'mappings' set.");
+    if (!hasMappingsParam) {
+        mappingsParam.setSize(0); // makes it an empty array
+        ROS_WARN("The 'mappings' parameter to tf_remap is missing");
+    }
 
     const bool bidirectional = this->privateNodeHandle.param<bool>("is_bidirectional", false);
 

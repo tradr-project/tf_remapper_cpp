@@ -23,7 +23,6 @@ namespace tf_remapper_cpp {
 class TfRemapperNode {
 public:
     //! Start the node.
-    //! \throws ros::InvalidParameterException if parameter 'mappings' is not set.
     //! \throws ros::InvalidParameterException if the 'mappings' parameter has invalid value.
     TfRemapperNode();
 

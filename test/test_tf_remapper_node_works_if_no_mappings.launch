@@ -8,14 +8,9 @@
 
     <node name="remapper" pkg="tf_remapper_cpp" type="tf_remap" output="screen"/>
 
-    <test name="publishtest"
-          test-name="publishtest"
-          pkg="rostest" type="hztest">
-        <rosparam>
-            topic: tf
-            hz: 0
-            hzerror: 0
-            test_duration: 1
-        </rosparam>
+    <test test-name="check_tf_exists_yz" pkg="tf_remapper_cpp" type="check_tf_exists">
+        <param name="source_tf" value="y" />
+        <param name="target_tf" value="z" />
+        <param name="should_succeed" value="true" />
     </test>
 </launch>
