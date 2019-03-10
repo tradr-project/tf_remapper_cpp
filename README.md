@@ -7,7 +7,7 @@ This package is an alternative to official ROS node [tf/tf_remap](https://github
 - Works natively with **TF2**
     - that could probably save a few data conversions
 - **Performance**: handles tens of TF subscribers with thousands of TF messages/sec with ease
-    - the official node fully utilizes 2 i7 CPU cores if you have 10 subscribers and publish 2000 TF messages per second
+    - the official node fully utilizes 2 i7 CPU cores if you have 10 subscribers and publish 2000 TF messages per second ([ros/geometry#175](//github.com/ros/geometry/issues/175))
     - this package needs about 0.4 CPU cores for the same
 - Can also remap **`/tf_static`**
     - the official package can not do that correctly
