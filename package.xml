@@ -7,6 +7,8 @@
   <maintainer email="peckama2@fel.cvut.cz">Martin Pecka</maintainer>
 
   <license>BSD</license>
+  
+  <url type="website">http://wiki.ros.org/tf_remapper_cpp</url>
 
   <author email="peckama2@fel.cvut.cz">Martin Pecka</author>
 
